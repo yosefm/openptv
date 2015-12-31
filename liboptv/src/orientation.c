@@ -159,3 +159,44 @@ double weighted_dumbbell_precision(vec2d** targets, int num_targs, int num_cams,
     return (dtot / num_targs + db_weight*len_err_tot/(0.5*num_targs));
 }
 
+/*  dumbbell_precision_measures() is similar to weighted_dumbbell_precision(),
+    with one important difference: instead of deciding on a weight, it simply
+    does all the per-point measure calculation for ray convergence and dumbbell
+    size and give them back in vectors.
+    
+    Note: the dumbbell size is not normalized, as the normalization required
+    depends on what the use does with it (e.g. Lagrange Multipliers method
+    automatically handle different scales so don't require it).
+
+    Arguments:
+    (vec2d **) targets - 2D array of targets, so order 3 tensor of shape
+        (num_targs,num_cams,2). Each target is the 2D metric coordinates of 
+        one identified point.
+    int num_targs - the number of known targets, assumed to be the same in all
+        cameras.
+    int num_cams - number of cameras.
+    mm_np *multimed_pars - multimedia parameters struct for ray tracing through
+        several layers.
+    Calibration* cals[] - each camera's calibration object.
+    double precs[] - output buffer. First ``num_targs`` points are the ray 
+        convergence measures, next ``num_targs``/2 are the dumbbell length in
+        each respective frame.
+*/
+void dumbbell_precision_measures(vec2d** targets, int num_targs, int num_cams,
+    mm_np *multimed_pars, Calibration* cals[], double precs[])
+{
+    int pt;
+    vec3d res[2], *res_current;
+    
+    for (pt = 0; pt < num_targs; pt++) {
+        res_current = &(res[pt % 2]);
+        precs[pt] = point_position(targets[pt], num_cams, multimed_pars, cals, 
+            *res_current);
+        
+        if (pt % 2 == 1) {
+            vec_subt(res[0], res[1], res[0]);
+            precs[num_targs + pt/2] = vec_norm(res[0]); /* integer division */
+        }
+    }
+}
+
