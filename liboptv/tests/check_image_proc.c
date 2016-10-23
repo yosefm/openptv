@@ -180,11 +180,11 @@ START_TEST(test_split)
        for historic reasons. */
     split(img1, 1, &cpar);
     fail_unless(images_equal(img1, img_odd, 5, 2, 0, 0));
-    fail_unless(images_equal(&(img1[2]), erased_half, 5, 3, 2, 0));
+    fail_unless(images_equal(&(img1[10]), erased_half, 5, 3, 2, 0));
     
     split(img2, 2, &cpar);
     fail_unless(images_equal(img2, img_even, 5, 2, 0, 0));
-    fail_unless(images_equal(&(img2[2]), erased_half, 5, 3, 2, 0));
+    fail_unless(images_equal(&(img2[10]), erased_half, 5, 3, 2, 0));
 }
 END_TEST
 
